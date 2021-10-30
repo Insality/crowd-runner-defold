@@ -4,8 +4,8 @@ local player_entity = nil
 local enemies = {}
 
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 2500 -- 530 / 800 / 2500
-local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 16000
+local BOX_HALF_SIZE = 1700 -- 530 / 800 / 1700 / 2500
+local ENEMIES_COUNT = 10000 -- 2048 / 3300 / 10000 / 16000
 local FAR_DISTANCE = 200
 
 local uid = 0
