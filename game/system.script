@@ -3,6 +3,7 @@ local utils = require("game.utils")
 local player_entity = nil
 local enemies = {}
 
+local TARGET_FPS = 60
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
 local BOX_HALF_SIZE = 1700 -- 530 / 800 / 1700 / 2500
 local ENEMIES_COUNT = 10000 -- 2048 / 3300 / 10000 / 16000
@@ -101,7 +102,7 @@ local function is_skip_frame(entity, frame)
 end
 
 
-local function update_entity(entity, frame)
+local function update_entity(entity, frame, dt)
 	if is_skip_frame(entity, frame) then
 		return
 	end
@@ -113,16 +114,16 @@ local function update_entity(entity, frame)
 	-- Get move delta vector
 	TEMP_VECTOR.x = entity.move_vector.x + entity.comp_vector.x
 	TEMP_VECTOR.y = entity.move_vector.y + entity.comp_vector.y
-	TEMP_VECTOR.x = TEMP_VECTOR.x * entity.speed
-	TEMP_VECTOR.y = TEMP_VECTOR.y * entity.speed
+	TEMP_VECTOR.x = TEMP_VECTOR.x * entity.speed * TARGET_FPS
+	TEMP_VECTOR.y = TEMP_VECTOR.y * entity.speed * TARGET_FPS
 	entity.comp_vector.x = 0
 	entity.comp_vector.y = 0
 
 	-- Apply delta to position
 	entity.position_previous.x = entity.position.x
 	entity.position_previous.y = entity.position.y
-	entity.position.x = entity.position.x + TEMP_VECTOR.x
-	entity.position.y = entity.position.y + TEMP_VECTOR.y
+	entity.position.x = entity.position.x + TEMP_VECTOR.x * dt
+	entity.position.y = entity.position.y + TEMP_VECTOR.y * dt
 
 	-- Restrict box size
 	entity.position.x = math.min(math.max(entity.position.x, -BOX_HALF_SIZE), 960 + BOX_HALF_SIZE)
@@ -165,9 +166,9 @@ end
 function update(self, dt)
 	self.frame = self.frame + 1
 
-	update_entity(player_entity, self.frame)
+	update_entity(player_entity, self.frame, dt)
 	for index = 1, #enemies do
-		update_entity(enemies[index], self.frame)
+		update_entity(enemies[index], self.frame, dt)
 	end
 end
 
