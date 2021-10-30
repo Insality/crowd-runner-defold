@@ -1,0 +1,71 @@
+[bootstrap]
+main_collection = /game/game.collectionc
+render = /orthographic/render/orthographic.renderc
+
+[script]
+shared_state = 1
+
+[display]
+width = 960
+height = 640
+high_dpi = 1
+
+[android]
+input_method = HiddenInputField
+
+[project]
+title = Crowd Runner
+dependencies#0 = https://github.com/britzl/defold-orthographic/archive/master.zip
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
+
+[collection]
+max_instances = 16600
+
+[spine]
+max_count = 0
+
+[model]
+max_count = 0
+
+[mesh]
+max_count = 0
+
+[gui]
+max_particle_count = 0
+max_particlefx_count = 0
+
+[label]
+max_count = 32
+
+[particle_fx]
+max_count = 0
+max_particle_count = 0
+
+[collection_proxy]
+max_count = 1
+
+[collectionfactory]
+max_count = 4
+
+[factory]
+max_count = 4
+
+[sprite]
+max_count = 16600
+
+[input]
+game_binding = /builtins/input/all.input_bindingc
+use_accelerometer = 0
+
+[physics]
+world_count = 1
+
+[native_extension]
+app_manifest = /system/game.appmanifest
+
+[tilemap]
+max_tile_count = 0
+

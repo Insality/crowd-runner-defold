@@ -1,0 +1,185 @@
+local utils = require("game.utils")
+
+local player_entity = nil
+local enemies = {}
+
+local temp_vector = vmath.vector3(0) -- For memory optimization
+local box_half_size = 530 -- 530
+local enemies_count = 2048 -- 2048
+local far_distance = 160
+
+local function create_entity(game_object)
+	local entity = {
+		game_object = game_object,
+		sprite_url = msg.url(nil, game_object, "sprite"),
+		position = go.get_position(game_object),
+		position_previous = go.get_position(game_object),
+		move_vector = vmath.vector3(0),
+		comp_vector = vmath.vector3(0),
+		radius = 21,
+		speed = 5,
+		anim_current = nil,
+		anim_run = "enemy_run",
+		anim_idle = "enemy_idle",
+		is_flip = false,
+		frame_last_update = 0
+	}
+	utils.octotree_add(entity)
+	return entity
+end
+
+
+local function calculate_comp_vector(entity, entities_for_compare)
+	if #entities_for_compare <= 1 then
+		return
+	end
+
+	local position = entity.position
+
+	for i = 1, #entities_for_compare do
+		local other = entities_for_compare[i]
+		if entity ~= other then
+			temp_vector.x = other.position.x - position.x
+			temp_vector.y = other.position.y - position.y
+			local distance = vmath.length(temp_vector)
+			if distance ~= 0 then
+				-- Calc comp vector
+				temp_vector.x = temp_vector.x / distance
+				temp_vector.y = temp_vector.y / distance
+				if distance < (entity.radius + other.radius) then
+					-- need to apply comp vector
+					entity.comp_vector.x = entity.comp_vector.x - temp_vector.x
+					entity.comp_vector.y = entity.comp_vector.y - temp_vector.y
+				end
+			end
+		end
+	end
+end
+
+
+local function calculate_move_vector(entity, other)
+	if entity == other then
+		return
+	end
+
+	local position = entity.position
+	entity.move_vector.x, entity.move_vector.y = 0, 0
+
+	temp_vector.x = other.position.x - position.x
+	temp_vector.y = other.position.y - position.y
+	local distance = vmath.length(temp_vector)
+	if distance ~= 0 and distance < far_distance then
+		-- Normalize
+		temp_vector.x = temp_vector.x / distance
+		temp_vector.y = temp_vector.y / distance
+		-- need to apply move_vector
+		entity.move_vector.x = entity.move_vector.x - temp_vector.x
+		entity.move_vector.y = entity.move_vector.y - temp_vector.y
+	end
+end
+
+
+local function update_entity(self, entity, index)
+	-- Reset
+	temp_vector.x, temp_vector.y = 0, 0
+	entity.comp_vector.x, entity.comp_vector.y = 0, 0
+
+	-- Physics
+	-- calculate_comp_vector(entity, utils.octotree_get_for(entity))
+	calculate_move_vector(entity, player_entity)
+
+	-- Get move delta vector
+	temp_vector.x = entity.move_vector.x + entity.comp_vector.x
+	temp_vector.y = entity.move_vector.y + entity.comp_vector.y
+	temp_vector.x = temp_vector.x * entity.speed
+	temp_vector.y = temp_vector.y * entity.speed
+
+	-- Apply delta to position
+	entity.position_previous.x = entity.position.x
+	entity.position_previous.y = entity.position.y
+	entity.position.x = entity.position.x + temp_vector.x
+	entity.position.y = entity.position.y + temp_vector.y
+
+	-- if vmath.length(temp_vector) > 0 then
+	-- 	utils.octotree_mark_dirty(entity)
+	-- end
+
+	-- Restrict box size
+	entity.position.x = math.min(math.max(entity.position.x, -box_half_size), 960 + box_half_size)
+	entity.position.y = math.min(math.max(entity.position.y, -box_half_size), 640 + box_half_size)
+
+	utils.octotree_update(entity)
+
+	utils.check_flip(entity)
+	utils.check_animation(entity)
+	utils.update_z_position(entity)
+
+	-- Update move
+	go.set_position(entity.position, entity.game_object)
+end
+
+
+
+function init(self)
+	self.frame = 0
+	msg.post(".", "acquire_input_focus")
+	player_entity = create_entity(go.get_id("/player"))
+	player_entity.anim_run = "player_run"
+	player_entity.anim_idle = "player_idle"
+
+	for i = 1, enemies_count do
+		temp_vector.x = math.random(0 + 32 - box_half_size, 960 - 32 + box_half_size)
+		temp_vector.y = math.random(0 + 32 - box_half_size, 640 - 32 + box_half_size)
+		local enemy_game_object = factory.create("#factory_enemy", temp_vector, nil, nil, 4)
+		table.insert(enemies, create_entity(enemy_game_object))
+	end
+end
+
+
+function final(self)
+	msg.post(".", "release_input_focus")
+end
+
+
+function update(self, dt)
+	self.frame = self.frame + 1
+
+	if self.frame == 1 then
+		-- profi:start()
+	end
+
+	update_entity(self, player_entity, 1)
+	for index = 1, #enemies do
+		update_entity(self, enemies[index], index)
+	end
+
+	if self.frame == 10 then
+		-- profi:stop()
+		-- profi:writeReport("report.txt")
+		-- print("End profi")
+	end
+end
+
+
+function on_input(self, action_id, action)
+	if action_id == hash("key_a") then
+		player_entity.move_vector.x = action.released and 0 or -1
+	end
+
+	if action_id == hash("key_d") then
+		player_entity.move_vector.x = action.released and 0 or  1
+	end
+
+	if action_id == hash("key_w") then
+		player_entity.move_vector.y = action.released and 0 or  1
+	end
+
+	if action_id == hash("key_s") then
+		player_entity.move_vector.y = action.released and 0 or -1
+	end
+
+	if action_id == hash("key_p") and action.pressed then
+		self._profiler_enabled = not self._profiler_enabled
+		profiler.enable_ui(self._profiler_enabled)
+	end
+end
