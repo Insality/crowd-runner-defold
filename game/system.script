@@ -4,8 +4,8 @@ local player_entity = nil
 local enemies = {}
 
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 530 -- 530
-local ENEMIES_COUNT = 2048 -- 2048
+local BOX_HALF_SIZE = 800 -- 530 / 800
+local ENEMIES_COUNT = 3300 -- 2048 / 3300
 local FAR_DISTANCE = 160
 
 local function create_entity(game_object)
@@ -29,31 +29,27 @@ local function create_entity(game_object)
 end
 
 
-local function calculate_comp_vector(entity, entities_for_compare)
-	if #entities_for_compare <= 1 then
-		return
-	end
-
+local function calculate_comp_vector(entity)
 	local position = entity.position
 
-	for i = 1, #entities_for_compare do
-		local other = entities_for_compare[i]
-		if entity ~= other then
-			TEMP_VECTOR.x = other.position.x - position.x
-			TEMP_VECTOR.y = other.position.y - position.y
-			local distance = vmath.length(TEMP_VECTOR)
-			if distance ~= 0 then
-				-- Calc comp vector
-				TEMP_VECTOR.x = TEMP_VECTOR.x / distance
-				TEMP_VECTOR.y = TEMP_VECTOR.y / distance
-				if distance < (entity.radius + other.radius) then
-					-- need to apply comp vector
-					entity.comp_vector.x = entity.comp_vector.x - TEMP_VECTOR.x
-					entity.comp_vector.y = entity.comp_vector.y - TEMP_VECTOR.y
-				end
+	utils.octotree_foreach(entity, function(other)
+		TEMP_VECTOR.x = other.position.x - position.x
+		TEMP_VECTOR.y = other.position.y - position.y
+		local distance = vmath.length(TEMP_VECTOR)
+		if distance ~= 0 then
+			-- Calc comp vector
+			TEMP_VECTOR.x = TEMP_VECTOR.x / distance
+			TEMP_VECTOR.y = TEMP_VECTOR.y / distance
+			if distance < (entity.radius + other.radius) then
+				-- need to apply comp vector
+				entity.comp_vector.x = entity.comp_vector.x - TEMP_VECTOR.x/2
+				entity.comp_vector.y = entity.comp_vector.y - TEMP_VECTOR.y/2
+
+				other.comp_vector.x = other.comp_vector.x + TEMP_VECTOR.x/2
+				other.comp_vector.y = other.comp_vector.y + TEMP_VECTOR.y/2
 			end
 		end
-	end
+	end)
 end
 
 
@@ -72,18 +68,14 @@ local function calculate_move_vector(entity, other)
 		-- Normalize
 		TEMP_VECTOR.x = TEMP_VECTOR.x / distance
 		TEMP_VECTOR.y = TEMP_VECTOR.y / distance
-		-- need to apply move_vector
+		-- Need to apply move_vector
 		entity.move_vector.x = entity.move_vector.x - TEMP_VECTOR.x
 		entity.move_vector.y = entity.move_vector.y - TEMP_VECTOR.y
 	end
 end
 
 
-local function update_entity(self, entity, index)
-	-- Reset
-	TEMP_VECTOR.x, TEMP_VECTOR.y = 0, 0
-	entity.comp_vector.x, entity.comp_vector.y = 0, 0
-
+local function update_entity(entity)
 	-- Physics
 	calculate_comp_vector(entity, utils.octotree_get_for(entity))
 	calculate_move_vector(entity, player_entity)
@@ -93,6 +85,8 @@ local function update_entity(self, entity, index)
 	TEMP_VECTOR.y = entity.move_vector.y + entity.comp_vector.y
 	TEMP_VECTOR.x = TEMP_VECTOR.x * entity.speed
 	TEMP_VECTOR.y = TEMP_VECTOR.y * entity.speed
+	entity.comp_vector.x = 0
+	entity.comp_vector.y = 0
 
 	-- Apply delta to position
 	entity.position_previous.x = entity.position.x
@@ -140,9 +134,9 @@ end
 function update(self, dt)
 	self.frame = self.frame + 1
 
-	update_entity(self, player_entity, 1)
+	update_entity(player_entity)
 	for index = 1, #enemies do
-		update_entity(self, enemies[index], index)
+		update_entity(enemies[index])
 	end
 end
 
