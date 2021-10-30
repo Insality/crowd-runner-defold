@@ -4,26 +4,29 @@ local player_entity = nil
 local enemies = {}
 
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 2000 -- 530 / 800
-local ENEMIES_COUNT = 16000 -- 2048 / 3300
-local FAR_DISTANCE = 160
+local BOX_HALF_SIZE = 2500 -- 530 / 800 / 2500
+local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 16000
+local FAR_DISTANCE = 200
 
+local uid = 0
 local function create_entity(game_object)
 	local entity = {
+		uid = uid,
 		game_object = game_object,
 		sprite_url = msg.url(nil, game_object, "sprite"),
 		position = go.get_position(game_object),
 		position_previous = go.get_position(game_object),
 		move_vector = vmath.vector3(0),
 		comp_vector = vmath.vector3(0),
-		radius = 21,
-		speed = 5,
+		radius = 22,
+		speed = 7,
 		anim_current = nil,
 		anim_run = "enemy_run",
 		anim_idle = "enemy_idle",
 		is_flip = false,
 		frame_last_update = 0
 	}
+	uid = uid + 1
 	utils.octotree_add(entity)
 	return entity
 end
@@ -76,8 +79,8 @@ end
 
 
 local thresholds = {
-	[200] = 2,
-	[400] = 4,
+	[300] = 2,
+	[500] = 4,
 	[600] = 8,
 	[800] = math.huge,
 }
@@ -94,7 +97,7 @@ local function is_skip_frame(entity, frame)
 		end
 	end
 
-	return frame % threshold ~= 0
+	return (frame + entity.uid) % threshold ~= 0
 end
 
 
@@ -143,6 +146,7 @@ function init(self)
 	player_entity = create_entity(go.get_id("/player"))
 	player_entity.anim_run = "player_run"
 	player_entity.anim_idle = "player_idle"
+	player_entity.speed = 6
 
 	for i = 1, ENEMIES_COUNT do
 		TEMP_VECTOR.x = math.random(0 + 32 - BOX_HALF_SIZE, 960 - 32 + BOX_HALF_SIZE)
