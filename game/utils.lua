@@ -13,7 +13,8 @@ end
 
 
 function M.check_animation(entity)
-    if vmath.length(entity.move_vector) == 0 then
+    local v = entity.move_vector
+    if math.sqrt(v.x * v.x + v.y * v.y) == 0 then
         if entity.anim_current ~= entity.anim_idle then
             entity.anim_current = entity.anim_idle
             sprite.play_flipbook(entity.sprite_url, entity.anim_idle)
@@ -29,9 +30,9 @@ end
 
 function M.check_flip(entity)
     if entity.move_vector.x ~= 0 and entity.move_vector.x < 0 ~= entity.is_flip then
-		entity.is_flip = (entity.move_vector.x < 0)
-		sprite.set_hflip(entity.sprite_url, entity.is_flip)
-	end
+        entity.is_flip = (entity.move_vector.x < 0)
+        sprite.set_hflip(entity.sprite_url, entity.is_flip)
+    end
 end
 
 

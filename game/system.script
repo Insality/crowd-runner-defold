@@ -10,15 +10,16 @@ local ENEMIES_COUNT = 10000 -- 2048 / 3300 / 10000 / 16000
 local FAR_DISTANCE = 200
 
 local uid = 0
-local function create_entity(game_object)
+local function create_entity(game_object, pos)
 	local entity = {
 		uid = uid,
 		game_object = game_object,
 		sprite_url = msg.url(nil, game_object, "sprite"),
-		position = go.get_position(game_object),
-		position_previous = go.get_position(game_object),
-		move_vector = vmath.vector3(0),
-		comp_vector = vmath.vector3(0),
+		-- avoid using vector3 user date to speedup calculations
+		position = {x = pos.x, y = pos.y, z = pos.z},
+		position_previous = {x = pos.x, y = pos.y, z = pos.z},
+		move_vector = {x = 0, y = 0, z = 0},
+		comp_vector = {x = 0, y = 0, z = 0},
 		radius = 22,
 		speed = 7,
 		anim_current = nil,
@@ -37,20 +38,20 @@ local function calculate_comp_vector(entity)
 	local position = entity.position
 
 	utils.octotree_foreach(entity, function(other)
-		TEMP_VECTOR.x = other.position.x - position.x
-		TEMP_VECTOR.y = other.position.y - position.y
-		local distance = vmath.length(TEMP_VECTOR)
+		local x = other.position.x - position.x
+		local y = other.position.y - position.y
+		local distance = math.sqrt(x * x + y * y)
 		if distance ~= 0 then
 			-- Calc comp vector
-			TEMP_VECTOR.x = TEMP_VECTOR.x / distance
-			TEMP_VECTOR.y = TEMP_VECTOR.y / distance
+			x = x / distance
+			y = y / distance
 			if distance < entity.radius + other.radius then
 				-- need to apply comp vector
-				entity.comp_vector.x = entity.comp_vector.x - TEMP_VECTOR.x
-				entity.comp_vector.y = entity.comp_vector.y - TEMP_VECTOR.y
+				entity.comp_vector.x = entity.comp_vector.x - x
+				entity.comp_vector.y = entity.comp_vector.y - y
 
-				other.comp_vector.x = other.comp_vector.x + TEMP_VECTOR.x
-				other.comp_vector.y = other.comp_vector.y + TEMP_VECTOR.y
+				other.comp_vector.x = other.comp_vector.x + x
+				other.comp_vector.y = other.comp_vector.y + y
 			end
 		end
 	end)
@@ -65,16 +66,16 @@ local function calculate_move_vector(entity, other)
 	local position = entity.position
 	entity.move_vector.x, entity.move_vector.y = 0, 0
 
-	TEMP_VECTOR.x = other.position.x - position.x
-	TEMP_VECTOR.y = other.position.y - position.y
-	local distance = vmath.length(TEMP_VECTOR)
+	local x = other.position.x - position.x
+	local y = other.position.y - position.y
+	local distance = math.sqrt(x * x + y * y)
 	if distance ~= 0 and distance < FAR_DISTANCE then
 		-- Normalize
-		TEMP_VECTOR.x = TEMP_VECTOR.x / distance
-		TEMP_VECTOR.y = TEMP_VECTOR.y / distance
+		x = x / distance
+		y = y / distance
 		-- Need to apply move_vector
-		entity.move_vector.x = entity.move_vector.x - TEMP_VECTOR.x
-		entity.move_vector.y = entity.move_vector.y - TEMP_VECTOR.y
+		entity.move_vector.x = entity.move_vector.x - x
+		entity.move_vector.y = entity.move_vector.y - y
 	end
 end
 
@@ -88,9 +89,9 @@ local thresholds = {
 
 
 local function is_skip_frame(entity, frame)
-	TEMP_VECTOR.x = entity.position.x - player_entity.position.x
-	TEMP_VECTOR.y = entity.position.y - player_entity.position.y
-	local distance = vmath.length(TEMP_VECTOR)
+	local x = entity.position.x - player_entity.position.x
+	local y = entity.position.y - player_entity.position.y
+	local distance = math.sqrt(x * x + y * y)
 	local threshold = 1
 	for t_dist, t_value in pairs(thresholds) do
 		if distance > t_dist and threshold < t_value then
@@ -100,7 +101,6 @@ local function is_skip_frame(entity, frame)
 
 	return (frame + entity.uid) % threshold ~= 0
 end
-
 
 local function update_entity(entity, frame, dt)
 	if is_skip_frame(entity, frame) then
@@ -112,18 +112,18 @@ local function update_entity(entity, frame, dt)
 	calculate_move_vector(entity, player_entity)
 
 	-- Get move delta vector
-	TEMP_VECTOR.x = entity.move_vector.x + entity.comp_vector.x
-	TEMP_VECTOR.y = entity.move_vector.y + entity.comp_vector.y
-	TEMP_VECTOR.x = TEMP_VECTOR.x * entity.speed * TARGET_FPS
-	TEMP_VECTOR.y = TEMP_VECTOR.y * entity.speed * TARGET_FPS
+	local x = entity.move_vector.x + entity.comp_vector.x
+	local y = entity.move_vector.y + entity.comp_vector.y
+	x = x * entity.speed * TARGET_FPS
+	y = y * entity.speed * TARGET_FPS
 	entity.comp_vector.x = 0
 	entity.comp_vector.y = 0
 
 	-- Apply delta to position
 	entity.position_previous.x = entity.position.x
 	entity.position_previous.y = entity.position.y
-	entity.position.x = entity.position.x + TEMP_VECTOR.x * dt
-	entity.position.y = entity.position.y + TEMP_VECTOR.y * dt
+	entity.position.x = entity.position.x + x * dt
+	entity.position.y = entity.position.y + y * dt
 
 	-- Restrict box size
 	entity.position.x = math.min(math.max(entity.position.x, -BOX_HALF_SIZE), 960 + BOX_HALF_SIZE)
@@ -135,8 +135,11 @@ local function update_entity(entity, frame, dt)
 	utils.check_animation(entity)
 	utils.update_z_position(entity)
 
-	-- Update move
-	go.set_position(entity.position, entity.game_object)
+	-- Update move using lua user data vector3
+	TEMP_VECTOR.x = entity.position.x
+	TEMP_VECTOR.y = entity.position.y
+	TEMP_VECTOR.z = entity.position.z
+	go.set_position(TEMP_VECTOR, entity.game_object)
 end
 
 
@@ -144,7 +147,8 @@ end
 function init(self)
 	self.frame = 0
 	msg.post(".", "acquire_input_focus")
-	player_entity = create_entity(go.get_id("/player"))
+	local player_id = go.get_id("/player")
+	player_entity = create_entity(player_id, go.get_position(player_id))
 	player_entity.anim_run = "player_run"
 	player_entity.anim_idle = "player_idle"
 	player_entity.speed = 6
@@ -153,7 +157,7 @@ function init(self)
 		TEMP_VECTOR.x = math.random(0 + 32 - BOX_HALF_SIZE, 960 - 32 + BOX_HALF_SIZE)
 		TEMP_VECTOR.y = math.random(0 + 32 - BOX_HALF_SIZE, 640 - 32 + BOX_HALF_SIZE)
 		local enemy_game_object = factory.create("#factory_enemy", TEMP_VECTOR, nil, nil, 4)
-		table.insert(enemies, create_entity(enemy_game_object))
+		table.insert(enemies, create_entity(enemy_game_object, TEMP_VECTOR))
 	end
 end
 
@@ -162,10 +166,8 @@ function final(self)
 	msg.post(".", "release_input_focus")
 end
 
-
 function update(self, dt)
 	self.frame = self.frame + 1
-
 	update_entity(player_entity, self.frame, dt)
 	for index = 1, #enemies do
 		update_entity(enemies[index], self.frame, dt)
