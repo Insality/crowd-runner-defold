@@ -4,8 +4,8 @@ local player_entity = nil
 local enemies = {}
 
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 800 -- 530 / 800
-local ENEMIES_COUNT = 3300 -- 2048 / 3300
+local BOX_HALF_SIZE = 2000 -- 530 / 800
+local ENEMIES_COUNT = 16000 -- 2048 / 3300
 local FAR_DISTANCE = 160
 
 local function create_entity(game_object)
@@ -40,13 +40,13 @@ local function calculate_comp_vector(entity)
 			-- Calc comp vector
 			TEMP_VECTOR.x = TEMP_VECTOR.x / distance
 			TEMP_VECTOR.y = TEMP_VECTOR.y / distance
-			if distance < (entity.radius + other.radius) then
+			if distance < entity.radius + other.radius then
 				-- need to apply comp vector
-				entity.comp_vector.x = entity.comp_vector.x - TEMP_VECTOR.x/2
-				entity.comp_vector.y = entity.comp_vector.y - TEMP_VECTOR.y/2
+				entity.comp_vector.x = entity.comp_vector.x - TEMP_VECTOR.x
+				entity.comp_vector.y = entity.comp_vector.y - TEMP_VECTOR.y
 
-				other.comp_vector.x = other.comp_vector.x + TEMP_VECTOR.x/2
-				other.comp_vector.y = other.comp_vector.y + TEMP_VECTOR.y/2
+				other.comp_vector.x = other.comp_vector.x + TEMP_VECTOR.x
+				other.comp_vector.y = other.comp_vector.y + TEMP_VECTOR.y
 			end
 		end
 	end)
@@ -75,7 +75,34 @@ local function calculate_move_vector(entity, other)
 end
 
 
-local function update_entity(entity)
+local thresholds = {
+	[200] = 2,
+	[400] = 4,
+	[600] = 8,
+	[800] = math.huge,
+}
+
+
+local function is_skip_frame(entity, frame)
+	TEMP_VECTOR.x = entity.position.x - player_entity.position.x
+	TEMP_VECTOR.y = entity.position.y - player_entity.position.y
+	local distance = vmath.length(TEMP_VECTOR)
+	local threshold = 1
+	for t_dist, t_value in pairs(thresholds) do
+		if distance > t_dist and threshold < t_value then
+			threshold = t_value
+		end
+	end
+
+	return frame % threshold ~= 0
+end
+
+
+local function update_entity(entity, frame)
+	if is_skip_frame(entity, frame) then
+		return
+	end
+
 	-- Physics
 	calculate_comp_vector(entity, utils.octotree_get_for(entity))
 	calculate_move_vector(entity, player_entity)
@@ -134,9 +161,9 @@ end
 function update(self, dt)
 	self.frame = self.frame + 1
 
-	update_entity(player_entity)
+	update_entity(player_entity, self.frame)
 	for index = 1, #enemies do
-		update_entity(enemies[index])
+		update_entity(enemies[index], self.frame)
 	end
 end
 
