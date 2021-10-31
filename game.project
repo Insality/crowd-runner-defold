@@ -22,7 +22,7 @@ default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
 
 [collection]
-max_instances = 16600
+max_instances = 32300
 
 [spine]
 max_count = 0
@@ -54,7 +54,7 @@ max_count = 4
 max_count = 4
 
 [sprite]
-max_count = 16600
+max_count = 32300
 
 [input]
 game_binding = /builtins/input/all.input_bindingc
