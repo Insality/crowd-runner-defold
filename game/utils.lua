@@ -2,7 +2,7 @@ local M = {}
 
 -- local neighbors = {{0, 0}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}}
 local neighbors = {{0, 0}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}
-local cell_size = 22
+local cell_size = 30
 local entgrid = {} -- entity grid
 
 
