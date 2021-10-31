@@ -12,6 +12,8 @@ local f_math_floor = math.floor
 local f_table_remove = table.remove
 local f_table_insert = table.insert
 
+local DISABLE = hash("disable")
+local ENABLE = hash("enable")
 
 function M.get_z_position(entity)
     return -(entity.position_y/10000) + 0.5
@@ -46,7 +48,7 @@ end
 function M.set_sprite_enabled(entity, state)
     if entity.is_sprite_enabled ~= state then
         entity.is_sprite_enabled = state
-        f_post(entity.game_object, state and "enable" or "disable")
+        f_post(entity.game_object, state and ENABLE or DISABLE)
     end
 end
 
