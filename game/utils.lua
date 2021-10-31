@@ -112,7 +112,7 @@ function M.entgrid_foreach(entity, callback)
         local entities = entgrid[key]
         for index = 1, #entities do
             if entity ~= entities[index] then
-                callback(entities[index])
+                callback(entity, entities[index])
             end
         end
     end
