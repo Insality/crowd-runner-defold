@@ -16,8 +16,8 @@ local BOX_WIDTH = SCREEN_WIDTH + BOX_HALF_SIZE
 local BOX_HEIGHT = SCREEN_HEIGHT + BOX_HALF_SIZE
 BOX_HALF_SIZE = -BOX_HALF_SIZE
 
--- In some rare cases with a lot of calculations and global 
--- function calls (like this code) it worth to pre-cache 
+-- In some rare cases with a lot of calculations and global
+-- function calls (like this code) it worth to pre-cache
 -- functions in local scope to avoid using global table.
 -- More info: https://www.lua.org/gems/sample.pdf
 -- it's not something you should do in regular code!
@@ -26,7 +26,6 @@ local f_math_min = math.min
 local f_math_max = math.max
 local f_math_random = math.random
 local f_go_set_position = go.set_position
-local f_pairs = pairs
 
 -- it's always better to calculate hashes only once
 local KEY_A = hash("key_a")
@@ -127,22 +126,21 @@ local SPRITE_DRAW_THRESHOLD = 800
 -- Dictionary with distance: active frame number. We rarely update entities that far
 -- away from player. For most game cases you can disable only part of update, for example physics.
 -- In this example we can skip all entity's update
+--[1] distance [2] frames
 local SKIP_FRAME_THRESHOLDS = {
-	[400] = 2,
-	[600] = 4,
-	[800] = 8,
-	[1000] = math.huge,
+	{400, 2},
+	{600, 4},
+	{800, 8},
+	{1000, math.huge},
 }
 
 local function is_skip_frame(entity, distance, frame)
-	local threshold = 1
-	for t_dist, t_value in f_pairs(SKIP_FRAME_THRESHOLDS) do
-		if distance > t_dist and threshold < t_value then
-			threshold = t_value
+	for i = #SKIP_FRAME_THRESHOLDS, 1, -1 do
+		local threshold_data = SKIP_FRAME_THRESHOLDS[i]
+		if distance > threshold_data[1] then
+			return (frame + entity.uid) % threshold_data[2] ~= 0
 		end
 	end
-
-	return (frame + entity.uid) % threshold ~= 0
 end
 
 
