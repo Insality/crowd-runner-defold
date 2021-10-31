@@ -6,15 +6,15 @@ local cell_size = 22
 local octotree = {}
 
 
-function M.update_z_position(entity)
-    local position = entity.position
-    position.z = -(position.y/10000) + 0.5
+function M.get_z_position(entity)
+    return -(entity.position_y/10000) + 0.5
 end
 
 
 function M.check_animation(entity)
-    local v = entity.move_vector
-    if math.sqrt(v.x * v.x + v.y * v.y) == 0 then
+    local x = entity.move_vector_x
+    local y = entity.move_vector_y
+    if math.sqrt(x * x + y * y) == 0 then
         if entity.anim_current ~= entity.anim_idle then
             entity.anim_current = entity.anim_idle
             sprite.play_flipbook(entity.sprite_url, entity.anim_idle)
@@ -29,8 +29,8 @@ end
 
 
 function M.check_flip(entity)
-    if entity.move_vector.x ~= 0 and entity.move_vector.x < 0 ~= entity.is_flip then
-        entity.is_flip = (entity.move_vector.x < 0)
+    if entity.move_vector_x ~= 0 and entity.move_vector_x < 0 ~= entity.is_flip then
+        entity.is_flip = (entity.move_vector_x < 0)
         sprite.set_hflip(entity.sprite_url, entity.is_flip)
     end
 end
@@ -47,8 +47,8 @@ end
 
 
 function M.octotree_add(entity)
-    local x = math.floor(entity.position.x / cell_size)
-    local y = math.floor(entity.position.y / cell_size)
+    local x = math.floor(entity.position_x / cell_size)
+    local y = math.floor(entity.position_y / cell_size)
     local key = octotree_key(x, y)
     check_octotree_cell(key)
     table.insert(octotree[key], entity)
@@ -56,10 +56,10 @@ end
 
 
 function M.octotree_update(entity)
-    local x_prev = math.floor(entity.position_previous.x / cell_size)
-    local y_prev = math.floor(entity.position_previous.y / cell_size)
-    local x = math.floor(entity.position.x / cell_size)
-    local y = math.floor(entity.position.y / cell_size)
+    local x_prev = math.floor(entity.position_previous_x / cell_size)
+    local y_prev = math.floor(entity.position_previous_y / cell_size)
+    local x = math.floor(entity.position_x / cell_size)
+    local y = math.floor(entity.position_y / cell_size)
     local key_prev = octotree_key(x_prev, y_prev)
     local key = octotree_key(x, y)
 
@@ -79,8 +79,8 @@ end
 
 
 function M.octotree_foreach(entity, callback)
-    local x = math.floor(entity.position.x / cell_size)
-    local y = math.floor(entity.position.y / cell_size)
+    local x = math.floor(entity.position_x / cell_size)
+    local y = math.floor(entity.position_y / cell_size)
 
     for i = 1, #neighbors do
         local n = neighbors[i]
@@ -97,8 +97,8 @@ end
 
 
 function M.octotree_get_for(entity)
-    local x = math.floor(entity.position.x / cell_size)
-    local y = math.floor(entity.position.y / cell_size)
+    local x = math.floor(entity.position_x / cell_size)
+    local y = math.floor(entity.position_y / cell_size)
     local key = octotree_key(x, y)
     check_octotree_cell(key)
     return octotree[key]

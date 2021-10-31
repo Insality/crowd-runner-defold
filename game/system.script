@@ -16,10 +16,14 @@ local function create_entity(game_object, pos)
 		game_object = game_object,
 		sprite_url = msg.url(nil, game_object, "sprite"),
 		-- avoid using vector3 user date to speedup calculations
-		position = {x = pos.x, y = pos.y, z = pos.z},
-		position_previous = {x = pos.x, y = pos.y, z = pos.z},
-		move_vector = {x = 0, y = 0, z = 0},
-		comp_vector = {x = 0, y = 0, z = 0},
+		position_x = pos.x,
+		position_y = pos.y,
+		position_previous_x = pos.x,
+		position_previous_y = pos.y,
+		move_vector_x = 0,
+		move_vector_y = 0,
+		comp_vector_x = 0,
+		comp_vector_y = 0,
 		radius = 22,
 		speed = 7,
 		anim_current = nil,
@@ -35,11 +39,9 @@ end
 
 
 local function calculate_comp_vector(entity)
-	local position = entity.position
-
 	utils.octotree_foreach(entity, function(other)
-		local x = other.position.x - position.x
-		local y = other.position.y - position.y
+		local x = other.position_x - entity.position_x
+		local y = other.position_y - entity.position_y
 		local distance = math.sqrt(x * x + y * y)
 		if distance ~= 0 then
 			-- Calc comp vector
@@ -47,11 +49,11 @@ local function calculate_comp_vector(entity)
 			y = y / distance
 			if distance < entity.radius + other.radius then
 				-- need to apply comp vector
-				entity.comp_vector.x = entity.comp_vector.x - x
-				entity.comp_vector.y = entity.comp_vector.y - y
+				entity.comp_vector_x = entity.comp_vector_x - x
+				entity.comp_vector_y = entity.comp_vector_y - y
 
-				other.comp_vector.x = other.comp_vector.x + x
-				other.comp_vector.y = other.comp_vector.y + y
+				other.comp_vector_x = other.comp_vector_x + x
+				other.comp_vector_y = other.comp_vector_y + y
 			end
 		end
 	end)
@@ -63,19 +65,18 @@ local function calculate_move_vector(entity, other)
 		return
 	end
 
-	local position = entity.position
-	entity.move_vector.x, entity.move_vector.y = 0, 0
+	entity.move_vector_x, entity.move_vector_y = 0, 0
 
-	local x = other.position.x - position.x
-	local y = other.position.y - position.y
+	local x = other.position_x - entity.position_x
+	local y = other.position_y - entity.position_y
 	local distance = math.sqrt(x * x + y * y)
 	if distance ~= 0 and distance < FAR_DISTANCE then
 		-- Normalize
 		x = x / distance
 		y = y / distance
 		-- Need to apply move_vector
-		entity.move_vector.x = entity.move_vector.x - x
-		entity.move_vector.y = entity.move_vector.y - y
+		entity.move_vector_x = entity.move_vector_x - x
+		entity.move_vector_y = entity.move_vector_y - y
 	end
 end
 
@@ -89,8 +90,8 @@ local thresholds = {
 
 
 local function is_skip_frame(entity, frame)
-	local x = entity.position.x - player_entity.position.x
-	local y = entity.position.y - player_entity.position.y
+	local x = entity.position_x - player_entity.position_x
+	local y = entity.position_y - player_entity.position_y
 	local distance = math.sqrt(x * x + y * y)
 	local threshold = 1
 	for t_dist, t_value in pairs(thresholds) do
@@ -112,33 +113,33 @@ local function update_entity(entity, frame, dt)
 	calculate_move_vector(entity, player_entity)
 
 	-- Get move delta vector
-	local x = entity.move_vector.x + entity.comp_vector.x
-	local y = entity.move_vector.y + entity.comp_vector.y
+	local x = entity.move_vector_x + entity.comp_vector_x
+	local y = entity.move_vector_y + entity.comp_vector_y
 	x = x * entity.speed * TARGET_FPS
 	y = y * entity.speed * TARGET_FPS
-	entity.comp_vector.x = 0
-	entity.comp_vector.y = 0
+	entity.comp_vector_x = 0
+	entity.comp_vector_y = 0
 
 	-- Apply delta to position
-	entity.position_previous.x = entity.position.x
-	entity.position_previous.y = entity.position.y
-	entity.position.x = entity.position.x + x * dt
-	entity.position.y = entity.position.y + y * dt
+	entity.position_previous_x = entity.position_x
+	entity.position_previous_y = entity.position_y
+	entity.position_x = entity.position_x + x * dt
+	entity.position_y = entity.position_y + y * dt
 
 	-- Restrict box size
-	entity.position.x = math.min(math.max(entity.position.x, -BOX_HALF_SIZE), 960 + BOX_HALF_SIZE)
-	entity.position.y = math.min(math.max(entity.position.y, -BOX_HALF_SIZE), 640 + BOX_HALF_SIZE)
+	entity.position_x = math.min(math.max(entity.position_x, -BOX_HALF_SIZE), 960 + BOX_HALF_SIZE)
+	entity.position_y = math.min(math.max(entity.position_y, -BOX_HALF_SIZE), 640 + BOX_HALF_SIZE)
 
 	utils.octotree_update(entity)
 
 	utils.check_flip(entity)
 	utils.check_animation(entity)
-	utils.update_z_position(entity)
+
 
 	-- Update move using lua user data vector3
-	TEMP_VECTOR.x = entity.position.x
-	TEMP_VECTOR.y = entity.position.y
-	TEMP_VECTOR.z = entity.position.z
+	TEMP_VECTOR.x = entity.position_x
+	TEMP_VECTOR.y = entity.position_y
+	TEMP_VECTOR.z = utils.get_z_position(entity)
 	go.set_position(TEMP_VECTOR, entity.game_object)
 end
 
@@ -177,19 +178,19 @@ end
 
 function on_input(self, action_id, action)
 	if action_id == hash("key_a") then
-		player_entity.move_vector.x = action.released and 0 or -1
+		player_entity.move_vector_x = action.released and 0 or -1
 	end
 
 	if action_id == hash("key_d") then
-		player_entity.move_vector.x = action.released and 0 or  1
+		player_entity.move_vector_x = action.released and 0 or  1
 	end
 
 	if action_id == hash("key_w") then
-		player_entity.move_vector.y = action.released and 0 or  1
+		player_entity.move_vector_y = action.released and 0 or  1
 	end
 
 	if action_id == hash("key_s") then
-		player_entity.move_vector.y = action.released and 0 or -1
+		player_entity.move_vector_y = action.released and 0 or -1
 	end
 
 	if action_id == hash("key_p") and action.pressed then
