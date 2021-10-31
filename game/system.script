@@ -33,13 +33,13 @@ local function create_entity(game_object, pos)
 		frame_last_update = 0
 	}
 	uid = uid + 1
-	utils.octotree_add(entity)
+	utils.entgrid_add(entity)
 	return entity
 end
 
 
 local function calculate_comp_vector(entity)
-	utils.octotree_foreach(entity, function(other)
+	utils.entgrid_foreach(entity, function(other)
 		local x = other.position_x - entity.position_x
 		local y = other.position_y - entity.position_y
 		local distance = math.sqrt(x * x + y * y)
@@ -109,7 +109,7 @@ local function update_entity(entity, frame, dt)
 	end
 
 	-- Physics
-	calculate_comp_vector(entity, utils.octotree_get_for(entity))
+	calculate_comp_vector(entity, utils.entgrid_get_for(entity))
 	calculate_move_vector(entity, player_entity)
 
 	-- Get move delta vector
@@ -130,7 +130,7 @@ local function update_entity(entity, frame, dt)
 	entity.position_x = math.min(math.max(entity.position_x, -BOX_HALF_SIZE), 960 + BOX_HALF_SIZE)
 	entity.position_y = math.min(math.max(entity.position_y, -BOX_HALF_SIZE), 640 + BOX_HALF_SIZE)
 
-	utils.octotree_update(entity)
+	utils.entgrid_update(entity)
 
 	utils.check_flip(entity)
 	utils.check_animation(entity)

@@ -3,7 +3,7 @@ local M = {}
 -- local neighbors = {{0, 0}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}}
 local neighbors = {{0, 0}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}
 local cell_size = 22
-local octotree = {}
+local entgrid = {} -- entity grid
 
 
 function M.get_z_position(entity)
@@ -36,57 +36,57 @@ function M.check_flip(entity)
 end
 
 
-local function octotree_key(x, y)
+local function entgrid_key(x, y)
     return x * 1000 + y
 end
 
 
-local function check_octotree_cell(key)
-    octotree[key] = octotree[key] or {}
+local function check_entgrid_cell(key)
+    entgrid[key] = entgrid[key] or {}
 end
 
 
-function M.octotree_add(entity)
+function M.entgrid_add(entity)
     local x = math.floor(entity.position_x / cell_size)
     local y = math.floor(entity.position_y / cell_size)
-    local key = octotree_key(x, y)
-    check_octotree_cell(key)
-    table.insert(octotree[key], entity)
+    local key = entgrid_key(x, y)
+    check_entgrid_cell(key)
+    table.insert(entgrid[key], entity)
 end
 
 
-function M.octotree_update(entity)
+function M.entgrid_update(entity)
     local x_prev = math.floor(entity.position_previous_x / cell_size)
     local y_prev = math.floor(entity.position_previous_y / cell_size)
     local x = math.floor(entity.position_x / cell_size)
     local y = math.floor(entity.position_y / cell_size)
-    local key_prev = octotree_key(x_prev, y_prev)
-    local key = octotree_key(x, y)
+    local key_prev = entgrid_key(x_prev, y_prev)
+    local key = entgrid_key(x, y)
 
     if key_prev == key then
         return
     end
 
-    for i = #octotree[key_prev], 1, -1 do
-        if octotree[key_prev][i] == entity then
-            table.remove(octotree[key_prev], i)
+    for i = #entgrid[key_prev], 1, -1 do
+        if entgrid[key_prev][i] == entity then
+            table.remove(entgrid[key_prev], i)
         end
     end
 
-    check_octotree_cell(key)
-    table.insert(octotree[key], entity)
+    check_entgrid_cell(key)
+    table.insert(entgrid[key], entity)
 end
 
 
-function M.octotree_foreach(entity, callback)
+function M.entgrid_foreach(entity, callback)
     local x = math.floor(entity.position_x / cell_size)
     local y = math.floor(entity.position_y / cell_size)
 
     for i = 1, #neighbors do
         local n = neighbors[i]
-        local key = octotree_key(x + n[1], y + n[2])
-        check_octotree_cell(key)
-        local entities = octotree[key]
+        local key = entgrid_key(x + n[1], y + n[2])
+        check_entgrid_cell(key)
+        local entities = entgrid[key]
         for index = 1, #entities do
             if entity ~= entities[index] then
                 callback(entities[index])
@@ -96,12 +96,12 @@ function M.octotree_foreach(entity, callback)
 end
 
 
-function M.octotree_get_for(entity)
+function M.entgrid_get_for(entity)
     local x = math.floor(entity.position_x / cell_size)
     local y = math.floor(entity.position_y / cell_size)
-    local key = octotree_key(x, y)
-    check_octotree_cell(key)
-    return octotree[key]
+    local key = entgrid_key(x, y)
+    check_entgrid_cell(key)
+    return entgrid[key]
 end
 
 
