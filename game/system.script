@@ -5,8 +5,8 @@ local enemies = {}
 
 local TARGET_FPS = 60
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 3200 -- 530 / 800 / 1700 / 2500 / 4500
-local ENEMIES_COUNT = 32000 -- 2048 / 3300 / 10000 / 16000 / 32000
+local BOX_HALF_SIZE = 2300 -- 530 / 800 / 1700 / 2300 / 4500
+local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 10000 / 16000 / 32000
 local FAR_DISTANCE = 200
 
 local uid = 0
