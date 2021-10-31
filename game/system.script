@@ -26,7 +26,6 @@ local f_math_min = math.min
 local f_math_max = math.max
 local f_math_random = math.random
 local f_go_set_position = go.set_position
-local f_pairs = pairs
 
 -- it's always better to calculate hashes only once
 local KEY_A = hash("key_a")
