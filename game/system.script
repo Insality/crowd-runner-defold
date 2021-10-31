@@ -9,11 +9,23 @@ local BOX_HALF_SIZE = 2300 -- 530 / 800 / 1700 / 2300 / 3600
 local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 10000 / 16000 / 32761
 local FAR_DISTANCE = 200 -- Radius to move enemies from player
 
+-- In some rare cases with a lot of calculations and global 
+-- function calls (like this code) it worth to pre-cache 
+-- functions in local scope to avoid using global table.
+-- More info: https://www.lua.org/gems/sample.pdf
+-- it's not something you should do in regular code!
 local f_math_sqrt = math.sqrt
 local f_math_min = math.min
 local f_math_max = math.max
 local f_go_set_position = go.set_position
 local f_pairs = pairs
+
+-- it's always better to calculate hashes only once
+local KEY_A = hash("key_a")
+local KEY_D = hash("key_d")
+local KEY_W = hash("key_w")
+local KEY_S = hash("key_s")
+local KEY_P = hash("key_p")
 
 local uid = 0
 local function create_entity(game_object, pos)
@@ -221,12 +233,6 @@ function update(self, dt)
 		update_entity(enemies[index], frame_count, dt)
 	end
 end
-
-local KEY_A = hash("key_a")
-local KEY_D = hash("key_d")
-local KEY_W = hash("key_w")
-local KEY_S = hash("key_s")
-local KEY_P = hash("key_p")
 
 function on_input(self, action_id, action)
 	if action_id == KEY_A then

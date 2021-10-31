@@ -5,13 +5,19 @@ local neighbors = {{0, 0}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}
 local cell_size = 30
 local entgrid = {} -- entity grid
 
-local f_play_flipbook = sprite.play_flipbook
-local f_set_hflip = sprite.set_hflip
-local f_post = msg.post
+-- In some rare cases with a lot of calculations and global 
+-- function calls (like this code) it worth to pre-cache 
+-- functions in local scope to avoid using global table.
+-- More info: https://www.lua.org/gems/sample.pdf
+-- it's not something you should do in regular code!
+local f_sprite_play_flipbook = sprite.play_flipbook
+local f_sprite_set_hflip = sprite.set_hflip
+local f_msg_post = msg.post
 local f_math_floor = math.floor
 local f_table_remove = table.remove
 local f_table_insert = table.insert
 
+-- it's always better to calculate hashes only once
 local DISABLE = hash("disable")
 local ENABLE = hash("enable")
 
@@ -26,12 +32,12 @@ function M.check_animation(entity)
     if x == 0 and y == 0 then
         if entity.anim_current ~= entity.anim_idle then
             entity.anim_current = entity.anim_idle
-            f_play_flipbook(entity.sprite_url, entity.anim_idle)
+            f_sprite_play_flipbook(entity.sprite_url, entity.anim_idle)
         end
     else
         if entity.anim_current ~= entity.anim_run then
             entity.anim_current = entity.anim_run
-            f_play_flipbook(entity.sprite_url, entity.anim_run)
+            f_sprite_play_flipbook(entity.sprite_url, entity.anim_run)
         end
     end
 end
@@ -40,7 +46,7 @@ end
 function M.check_flip(entity)
     if entity.move_vector_x ~= 0 and entity.move_vector_x < 0 ~= entity.is_flip then
         entity.is_flip = (entity.move_vector_x < 0)
-        f_set_hflip(entity.sprite_url, entity.is_flip)
+        f_sprite_set_hflip(entity.sprite_url, entity.is_flip)
     end
 end
 
@@ -48,7 +54,7 @@ end
 function M.set_sprite_enabled(entity, state)
     if entity.is_sprite_enabled ~= state then
         entity.is_sprite_enabled = state
-        f_post(entity.game_object, state and ENABLE or DISABLE)
+        f_msg_post(entity.game_object, state and ENABLE or DISABLE)
     end
 end
 
