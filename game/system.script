@@ -78,6 +78,10 @@ local function calculate_move_vector(entity, other, distance)
 
 	entity.move_vector_x, entity.move_vector_y = 0, 0
 
+	if other.move_vector_x == 0 and other.move_vector_y == 0 then
+		return
+	end
+
 	local x = other.position_x - entity.position_x
 	local y = other.position_y - entity.position_y
 	if distance ~= 0 and distance < FAR_DISTANCE then
@@ -133,7 +137,7 @@ local function update_entity(entity, frame, dt)
 	end
 
 	-- Physics
-	calculate_comp_vector(entity, utils.entgrid_get_for(entity))
+	calculate_comp_vector(entity)
 	calculate_move_vector(entity, player_entity, distance_to_player)
 
 	-- Get move delta vector
@@ -178,10 +182,21 @@ function init(self)
 
 	-- Create all enemies in one frame, it's hard operation!
 	for i = 1, ENEMIES_COUNT do
-		TEMP_VECTOR.x = math.random(0 + 32 - BOX_HALF_SIZE, 960 - 32 + BOX_HALF_SIZE)
-		TEMP_VECTOR.y = math.random(0 + 32 - BOX_HALF_SIZE, 640 - 32 + BOX_HALF_SIZE)
-		local enemy_game_object = factory.create("#factory_enemy", TEMP_VECTOR, nil, nil, 4)
-		table.insert(enemies, create_entity(enemy_game_object, TEMP_VECTOR))
+		-- Random position on all available scene
+		TEMP_VECTOR.x = math.random(-BOX_HALF_SIZE, 960 + BOX_HALF_SIZE)
+		TEMP_VECTOR.y = math.random(-BOX_HALF_SIZE, 640 + BOX_HALF_SIZE)
+
+		-- Change scale of some enemies +- 0.3
+		local scale_factor = 1
+		if math.random() > 0.9 then
+			scale_factor = 0.7 + math.random() * 0.6
+		end
+
+		local enemy_game_object = factory.create("#factory_enemy", TEMP_VECTOR, nil, nil, 4 * scale_factor)
+		local enemy = create_entity(enemy_game_object, TEMP_VECTOR)
+		enemy.radius = enemy.radius * scale_factor
+
+		table.insert(enemies, enemy)
 	end
 
 	msg.post(".", "acquire_input_focus")

@@ -14,7 +14,7 @@ end
 function M.check_animation(entity)
     local x = entity.move_vector_x
     local y = entity.move_vector_y
-    if math.sqrt(x * x + y * y) == 0 then
+    if x == 0 and y == 0 then
         if entity.anim_current ~= entity.anim_idle then
             entity.anim_current = entity.anim_idle
             sprite.play_flipbook(entity.sprite_url, entity.anim_idle)
