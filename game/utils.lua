@@ -36,6 +36,14 @@ function M.check_flip(entity)
 end
 
 
+function M.set_sprite_enabled(entity, state)
+    if entity.is_sprite_enabled ~= state then
+        entity.is_sprite_enabled = state
+        msg.post(entity.game_object, state and "enable" or "disable")
+    end
+end
+
+
 local function entgrid_key(x, y)
     return x * 1000 + y
 end

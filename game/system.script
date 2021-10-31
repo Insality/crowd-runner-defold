@@ -7,15 +7,21 @@ local TARGET_FPS = 60
 local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
 local BOX_HALF_SIZE = 2300 -- 530 / 800 / 1700 / 2300 / 3600
 local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 10000 / 16000 / 32761
-local FAR_DISTANCE = 200
+local FAR_DISTANCE = 200 -- Radius to move enemies from player
 
 local uid = 0
 local function create_entity(game_object, pos)
 	local entity = {
+		-- Uid used for frame update shift (for smooth huge updates)
 		uid = uid,
 		game_object = game_object,
+		-- Cache sprite url, we use it a lot
 		sprite_url = msg.url(nil, game_object, "sprite"),
-		-- avoid using vector3 user date to speedup calculations
+
+		-- Avoid using vector3 user date to speedup calculations
+		-- Also avoid lua tables because of memory optimization
+		-- You can use vector3 and lua tables, but it cost a little more CPU/Memory than numbers
+		-- So for huge data set like this it's matter
 		position_x = pos.x,
 		position_y = pos.y,
 		position_previous_x = pos.x,
@@ -30,6 +36,7 @@ local function create_entity(game_object, pos)
 		anim_run = "enemy_run",
 		anim_idle = "enemy_idle",
 		is_flip = false,
+		is_sprite_enabled = true,
 		frame_last_update = 0
 	}
 	uid = uid + 1
@@ -44,14 +51,18 @@ local function calculate_comp_vector(entity)
 		local y = other.position_y - entity.position_y
 		local distance = math.sqrt(x * x + y * y)
 		if distance ~= 0 then
-			-- Calc comp vector
+			-- Calculate comp vector
 			x = x / distance
 			y = y / distance
 			if distance < entity.radius + other.radius then
-				-- need to apply comp vector
+				-- Apply comp vector to myself
 				entity.comp_vector_x = entity.comp_vector_x - x
 				entity.comp_vector_y = entity.comp_vector_y - y
 
+				-- We affects other comp_vector, because we check collisions
+				-- only in 4 ways (entities grid optimization)
+				-- If we will check in all 8 ways, we can disable it and
+				-- calculate only own comp_vector
 				other.comp_vector_x = other.comp_vector_x + x
 				other.comp_vector_y = other.comp_vector_y + y
 			end
@@ -60,7 +71,7 @@ local function calculate_comp_vector(entity)
 end
 
 
-local function calculate_move_vector(entity, other)
+local function calculate_move_vector(entity, other, distance)
 	if entity == other then
 		return
 	end
@@ -69,32 +80,34 @@ local function calculate_move_vector(entity, other)
 
 	local x = other.position_x - entity.position_x
 	local y = other.position_y - entity.position_y
-	local distance = math.sqrt(x * x + y * y)
 	if distance ~= 0 and distance < FAR_DISTANCE then
-		-- Normalize
+		-- Normalize vector
 		x = x / distance
 		y = y / distance
-		-- Need to apply move_vector
+		-- Apply move_vector
 		entity.move_vector_x = entity.move_vector_x - x
 		entity.move_vector_y = entity.move_vector_y - y
 	end
 end
 
 
-local thresholds = {
-	[300] = 2,
-	[500] = 4,
-	[600] = 8,
-	[800] = math.huge,
+-- Defold can draw all 32000 entities, but with sprite disable it will much faster
+-- Note: for enable/disable sprite you have to send messages! A lot of messages can affect your perfomance
+local SPRITE_DRAW_THRESHOLD = 800
+
+-- Dictionary with distance: active frame number. We rarely update entities that far
+-- away from player. For most game cases you can disable only part of update, for example physics.
+-- In this example we can skip all entity's update
+local SKIP_FRAME_THRESHOLDS = {
+	[400] = 2,
+	[600] = 4,
+	[800] = 8,
+	[1000] = math.huge,
 }
 
-
-local function is_skip_frame(entity, frame)
-	local x = entity.position_x - player_entity.position_x
-	local y = entity.position_y - player_entity.position_y
-	local distance = math.sqrt(x * x + y * y)
+local function is_skip_frame(entity, distance, frame)
 	local threshold = 1
-	for t_dist, t_value in pairs(thresholds) do
+	for t_dist, t_value in pairs(SKIP_FRAME_THRESHOLDS) do
 		if distance > t_dist and threshold < t_value then
 			threshold = t_value
 		end
@@ -103,20 +116,29 @@ local function is_skip_frame(entity, frame)
 	return (frame + entity.uid) % threshold ~= 0
 end
 
+
+local function get_distance_to_player(entity)
+	local x = entity.position_x - player_entity.position_x
+	local y = entity.position_y - player_entity.position_y
+	return math.sqrt(x * x + y * y)
+end
+
+
 local function update_entity(entity, frame, dt)
-	if is_skip_frame(entity, frame) then
+	local distance_to_player = get_distance_to_player(entity)
+	utils.set_sprite_enabled(entity, distance_to_player < SPRITE_DRAW_THRESHOLD)
+
+	if is_skip_frame(entity, distance_to_player, frame) then
 		return
 	end
 
 	-- Physics
 	calculate_comp_vector(entity, utils.entgrid_get_for(entity))
-	calculate_move_vector(entity, player_entity)
+	calculate_move_vector(entity, player_entity, distance_to_player)
 
 	-- Get move delta vector
-	local x = entity.move_vector_x + entity.comp_vector_x
-	local y = entity.move_vector_y + entity.comp_vector_y
-	x = x * entity.speed * TARGET_FPS
-	y = y * entity.speed * TARGET_FPS
+	local x = (entity.move_vector_x + entity.comp_vector_x) * entity.speed * TARGET_FPS
+	local y = (entity.move_vector_y + entity.comp_vector_y) * entity.speed * TARGET_FPS
 	entity.comp_vector_x = 0
 	entity.comp_vector_y = 0
 
@@ -135,7 +157,6 @@ local function update_entity(entity, frame, dt)
 	utils.check_flip(entity)
 	utils.check_animation(entity)
 
-
 	-- Update move using lua user data vector3
 	TEMP_VECTOR.x = entity.position_x
 	TEMP_VECTOR.y = entity.position_y
@@ -147,19 +168,23 @@ end
 
 function init(self)
 	self.frame = 0
-	msg.post(".", "acquire_input_focus")
+
+	-- Create player entity
 	local player_id = go.get_id("/player")
 	player_entity = create_entity(player_id, go.get_position(player_id))
 	player_entity.anim_run = "player_run"
 	player_entity.anim_idle = "player_idle"
 	player_entity.speed = 6
 
+	-- Create all enemies in one frame, it's hard operation!
 	for i = 1, ENEMIES_COUNT do
 		TEMP_VECTOR.x = math.random(0 + 32 - BOX_HALF_SIZE, 960 - 32 + BOX_HALF_SIZE)
 		TEMP_VECTOR.y = math.random(0 + 32 - BOX_HALF_SIZE, 640 - 32 + BOX_HALF_SIZE)
 		local enemy_game_object = factory.create("#factory_enemy", TEMP_VECTOR, nil, nil, 4)
 		table.insert(enemies, create_entity(enemy_game_object, TEMP_VECTOR))
 	end
+
+	msg.post(".", "acquire_input_focus")
 end
 
 
@@ -167,9 +192,11 @@ function final(self)
 	msg.post(".", "release_input_focus")
 end
 
+
 function update(self, dt)
 	self.frame = self.frame + 1
 	update_entity(player_entity, self.frame, dt)
+
 	for index = 1, #enemies do
 		update_entity(enemies[index], self.frame, dt)
 	end
