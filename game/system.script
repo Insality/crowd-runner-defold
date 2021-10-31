@@ -126,17 +126,18 @@ local SPRITE_DRAW_THRESHOLD = 800
 -- Dictionary with distance: active frame number. We rarely update entities that far
 -- away from player. For most game cases you can disable only part of update, for example physics.
 -- In this example we can skip all entity's update
+--[1] distance [2] frames
 local SKIP_FRAME_THRESHOLDS = {
-	{400,2}, --[1] distance [2] frames
-	{600,4},
-	{800,8},
-	{1000,math.huge},
+	{400, 2},
+	{600, 4},
+	{800, 8},
+	{1000, math.huge},
 }
 
 local function is_skip_frame(entity, distance, frame)
-	for i=#SKIP_FRAME_THRESHOLDS,1,-1 do
+	for i = #SKIP_FRAME_THRESHOLDS, 1, -1 do
 		local threshold_data = SKIP_FRAME_THRESHOLDS[i]
-		if(distance>threshold_data[1])then
+		if distance > threshold_data[1] then
 			return (frame + entity.uid) % threshold_data[2] ~= 0
 		end
 	end
