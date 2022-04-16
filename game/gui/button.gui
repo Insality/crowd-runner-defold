@@ -52,7 +52,7 @@ nodes {
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -108,7 +108,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -178,7 +178,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -187,6 +187,12 @@ nodes {
   text_leading: 1.0
   text_tracking: 0.0
   custom_type: 0
+}
+layers {
+  name: "image"
+}
+layers {
+  name: "text"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

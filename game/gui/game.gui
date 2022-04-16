@@ -52,7 +52,7 @@ nodes {
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_STRETCH
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -108,7 +108,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_STRETCH
   parent: "root"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -178,7 +178,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "NW_Anchor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.75
@@ -228,7 +228,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_STRETCH
   parent: "root"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -325,7 +325,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_profiler"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -381,7 +381,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_profiler/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -451,7 +451,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_profiler/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -543,7 +543,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_skip_update"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -599,7 +599,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_skip_update/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -669,7 +669,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_skip_update/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -763,7 +763,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_render_outside"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -819,7 +819,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_render_outside/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -889,7 +889,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_render_outside/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -942,7 +942,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_STRETCH
   parent: "root"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1012,7 +1012,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "SE_Anchor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -1103,7 +1103,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_1024"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1159,7 +1159,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_1024/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1229,7 +1229,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_enemies_1024/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -1321,7 +1321,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_4096"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1377,7 +1377,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_4096/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1447,7 +1447,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_enemies_4096/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -1539,7 +1539,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_16000"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1595,7 +1595,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_16000/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1665,7 +1665,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_enemies_16000/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -1757,7 +1757,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_32000"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1813,7 +1813,7 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "button_enemies_32000/button"
-  layer: ""
+  layer: "image"
   inherit_alpha: true
   slice9 {
     x: 0.0
@@ -1883,7 +1883,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
   parent: "button_enemies_32000/button_decor"
-  layer: ""
+  layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 0.5
@@ -1893,6 +1893,12 @@ nodes {
   text_leading: 1.0
   text_tracking: 0.0
   custom_type: 0
+}
+layers {
+  name: "image"
+}
+layers {
+  name: "text"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
