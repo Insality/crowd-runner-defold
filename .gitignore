@@ -8,3 +8,6 @@ Thumbs.db
 .project
 .cproject
 builtins
+deployer_version_settings.txt
+
+.deployer_cache

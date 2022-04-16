@@ -1,13 +1,16 @@
+local data = require("game.data")
 local utils = require("game.utils")
 
 local player_entity = nil
 local enemies = {}
 
 local TARGET_FPS = 60
-local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization
-local BOX_HALF_SIZE = 2300 -- 530 / 800 / 1700 / 2300 / 3600
-local ENEMIES_COUNT = 16000 -- 2048 / 3300 / 10000 / 16000 / 32761
-local FAR_DISTANCE = 200 -- Radius to move enemies from player
+local TEMP_VECTOR = vmath.vector3(0) -- For memory optimization. Using this vector to setup positions
+
+
+local BOX_HALF_SIZE = tonumber(sys.get_config("game.box_size", 4600))/2 -- 530 / 800 / 1700 / 2300 / 3600 Half size of game arena
+local ENEMIES_COUNT = tonumber(sys.get_config("game.enemies_count", 16000)) -- 2048 / 3300 / 10000 / 16000 / 32761
+local FAR_DISTANCE = tonumber(sys.get_config("game.far_distance", 200)) -- Radius to move enemies from player
 
 local SCREEN_WIDTH = sys.get_config("display.width", 960)
 local SCREEN_HEIGHT = sys.get_config("display.width", 640)
@@ -33,6 +36,7 @@ local KEY_D = hash("key_d")
 local KEY_W = hash("key_w")
 local KEY_S = hash("key_s")
 local KEY_P = hash("key_p")
+local TOUCH_ID = hash("touch")
 
 local ANIM_RUN = hash("enemy_run")
 local ANIM_IDLE = hash("enemy_idle")
@@ -121,7 +125,7 @@ end
 
 -- Defold can draw all 32000 entities, but with sprite disable it will much faster
 -- Note: for enable/disable sprite you have to send messages! A lot of messages can affect your perfomance
-local SPRITE_DRAW_THRESHOLD = 800
+local SPRITE_DRAW_THRESHOLD = 700
 
 -- Dictionary with distance: active frame number. We rarely update entities that far
 -- away from player. For most game cases you can disable only part of update, for example physics.
@@ -153,9 +157,10 @@ end
 
 local function update_entity(entity, frame, dt)
 	local distance_to_player = get_distance_to_player(entity)
-	utils.set_sprite_enabled(entity, distance_to_player < SPRITE_DRAW_THRESHOLD)
 
-	if is_skip_frame(entity, distance_to_player, frame) then
+	utils.set_sprite_enabled(entity, data.is_draw_outside or distance_to_player < SPRITE_DRAW_THRESHOLD)
+
+	if data.is_skip_update and is_skip_frame(entity, distance_to_player, frame) then
 		return
 	end
 
@@ -190,7 +195,6 @@ local function update_entity(entity, frame, dt)
 	TEMP_VECTOR.z = utils.get_z_position(entity)
 	f_go_set_position(TEMP_VECTOR, entity.game_object)
 end
-
 
 
 function init(self)
@@ -230,8 +234,8 @@ function final(self)
 	msg.post(".", "release_input_focus")
 end
 
-local frame_count = 0
 
+local frame_count = 0
 function update(self, dt)
 	frame_count = frame_count + 1
 	update_entity(player_entity, frame_count, dt)
@@ -241,17 +245,18 @@ function update(self, dt)
 	end
 end
 
+
 function on_input(self, action_id, action)
 	if action_id == KEY_A then
 		player_entity.move_vector_x = action.released and 0 or -1
 	end
 
 	if action_id == KEY_D then
-		player_entity.move_vector_x = action.released and 0 or  1
+		player_entity.move_vector_x = action.released and 0 or 1
 	end
 
 	if action_id == KEY_W then
-		player_entity.move_vector_y = action.released and 0 or  1
+		player_entity.move_vector_y = action.released and 0 or 1
 	end
 
 	if action_id == KEY_S then
@@ -261,5 +266,18 @@ function on_input(self, action_id, action)
 	if action_id == KEY_P and action.pressed then
 		self._profiler_enabled = not self._profiler_enabled
 		profiler.enable_ui(self._profiler_enabled)
+	end
+
+	if action_id == TOUCH_ID then
+		if action.x < 480 then
+			player_entity.move_vector_x = action.released and 0 or -1
+		else
+			player_entity.move_vector_x = action.released and 0 or 1
+		end
+		if action.y < 320 then
+			player_entity.move_vector_y = action.released and 0 or -1
+		else
+			player_entity.move_vector_y = action.released and 0 or 1
+		end
 	end
 end

@@ -1,0 +1,46 @@
+local data = require("game.data")
+local TOUCH_ID = hash("touch")
+
+local function update_info(self)
+	local enemies_count = tonumber(sys.get_config("game.enemies_count", 16000))
+	gui.set_text(gui.get_node("text_info"), string.format(self._format_string,
+		enemies_count,
+		tostring(data.is_skip_update),
+		tostring(data.is_draw_outside))
+	)
+end
+
+
+function init(self)
+	self._format_string = "Enemies: %s\nSkip update: %s\nDraw outside: %s"
+	update_info(self)
+end
+
+
+function on_input(self, action_id, action)
+	if action.released and action_id == TOUCH_ID then
+		if gui.pick_node(gui.get_node("button_enemies_1024/button"), action.x, action.y) then
+			sys.reboot("--config=game.enemies_count=1024", "--config=game.box_size=350")
+		end
+		if gui.pick_node(gui.get_node("button_enemies_4096/button"), action.x, action.y) then
+			sys.reboot("--config=game.enemies_count=4096", "--config=game.box_size=2100")
+		end
+		if gui.pick_node(gui.get_node("button_enemies_16000/button"), action.x, action.y) then
+			sys.reboot("--config=game.enemies_count=16000", "--config=game.box_size=4600")
+		end
+		if gui.pick_node(gui.get_node("button_enemies_32000/button"), action.x, action.y) then
+			sys.reboot("--config=game.enemies_count=32000", "--config=game.box_size=7200")
+		end
+		if gui.pick_node(gui.get_node("button_profiler/button"), action.x, action.y) then
+			msg.post("@system:", "toggle_profile")
+		end
+		if gui.pick_node(gui.get_node("button_render_outside/button"), action.x, action.y) then
+			data.is_draw_outside = not data.is_draw_outside
+			update_info(self)
+		end
+		if gui.pick_node(gui.get_node("button_skip_update/button"), action.x, action.y) then
+			data.is_skip_update = not data.is_skip_update
+			update_info(self)
+		end
+	end
+end
