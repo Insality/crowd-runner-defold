@@ -9,7 +9,7 @@ _Defold_ example with up to 32765 entities support with simple physics
 
 ### About
 The example was created from this video:
-![](media/ref_video.mp4)
+![](media/ref_video.gif)
 
 And we tried to build the same stuff on _Defold_. For now it's kind of example and benchmark to see how we can use a lot of entities at once time.
 
