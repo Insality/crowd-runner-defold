@@ -1,10 +1,10 @@
 # Crowd Runner Example
-
-
 _Defold_ example with up to 32765 entities support with simple physics
 
-
 ![](media/banner.png)
+
+#### [Click here to check the HTML example](https://insality.github.io/crowd-runner-defold/)
+- Profiler is not working in HTML release build
 
 
 ### About
