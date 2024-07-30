@@ -1,0 +1,21 @@
+{
+    "files.exclude": {
+        "**/.internal/*": true,
+        "**/build/*": true,
+        "**/dist/*": true
+	},
+	"Lua.diagnostics.globals": [
+		"sys",
+		"vmath",
+		"hash",
+		"msg",
+		"factory",
+		"profiler",
+		"go",
+		"final",
+		"update",
+		"on_input",
+		"init",
+		"gui"
+	]
+}
